@@ -1,0 +1,278 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>calculator: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">get-to-work-problem/calculator/calculator.go (91.1%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package calculator
+
+import (
+        "errors"
+        "fmt"
+        "sort"
+        "strconv"
+        "strings"
+)
+
+const IMPOSSIBLE = "IMPOSSIBLE"
+
+type Parameter struct {
+        NoOfTowns     int // N
+        OfficeTown    int // T
+        NoOfEmployees int // E
+        Employees     []Employee
+}
+
+type Employee struct {
+        Hometown       int // H
+        NoOfPassengers int // P
+}
+
+// Custom sorting function, make the employees to be descending order by number of passengers the employee can drive and by town
+type employeesByTownAndPassengers []Employee
+
+func (e employeesByTownAndPassengers) Len() int <span class="cov6" title="4">{
+        return len(e)
+}</span>
+func (e employeesByTownAndPassengers) Swap(i, j int) <span class="cov6" title="4">{
+        e[i], e[j] = e[j], e[i]
+}</span>
+func (e employeesByTownAndPassengers) Less(i, j int) bool <span class="cov10" title="10">{
+        if e[i].Hometown == e[j].Hometown </span><span class="cov3" title="2">{
+                return e[i].NoOfPassengers &gt; e[j].NoOfPassengers
+        }</span>
+        <span class="cov9" title="8">return e[i].Hometown &lt; e[j].Hometown</span>
+}
+
+func (p *Parameter) CanEveryoneMakeItToWork() interface{} <span class="cov5" title="3">{
+
+        result := make([]int, p.NoOfTowns)
+        employees := p.Employees
+        currTown := 1
+
+        // total number of employees in each town
+        employeeInTown := 0
+        // descending order array by number of passegers the employee can drive, will be cleared when next town
+        noOfPassengersArr := make([]int, 0)
+        // total number of passegers allowed, will be cleared when next town
+        totalPassengersAllow := 0
+
+        // Sorting by town, and for each town, sorting by the no of passagers
+        sort.Stable(employeesByTownAndPassengers(employees))
+
+        for _, e := range employees </span><span class="cov8" title="7">{
+                if e.Hometown == p.OfficeTown </span><span class="cov3" title="2">{
+                        // If the employee is the office town, he/she can make it to work
+                        continue</span>
+                }
+
+                <span class="cov7" title="5">if currTown != e.Hometown </span><span class="cov7" title="5">{
+                        // check whether last town meets the requirements
+                        carsNeeded := checkRequirements(employeeInTown, totalPassengersAllow, noOfPassengersArr)
+                        if carsNeeded &lt; 0 </span><span class="cov1" title="1">{
+                                return IMPOSSIBLE
+                        }</span>
+                        <span class="cov6" title="4">result[currTown-1] = carsNeeded
+
+                        currTown = e.Hometown
+                        // reset the var for next town
+                        noOfPassengersArr = make([]int, 0)
+                        employeeInTown = 0
+                        totalPassengersAllow = 0</span>
+                }
+
+                <span class="cov6" title="4">if e.NoOfPassengers != 0 </span><span class="cov5" title="3">{
+                        totalPassengersAllow += e.NoOfPassengers
+                        noOfPassengersArr = append(noOfPassengersArr, e.NoOfPassengers)
+                }</span>
+                <span class="cov6" title="4">employeeInTown++</span>
+        }
+
+        // check requirements for the last town
+        <span class="cov3" title="2">carsNeeded := checkRequirements(employeeInTown, totalPassengersAllow, noOfPassengersArr)
+        if carsNeeded &lt; 0 </span><span class="cov0" title="0">{
+                return IMPOSSIBLE
+        }</span>
+        <span class="cov3" title="2">result[currTown-1] = carsNeeded
+        return result</span>
+}
+
+func ReadInputAsParam(input string) ([]*Parameter, error) <span class="cov7" title="5">{
+        params := make([]*Parameter, 0)
+
+        lines := strings.Split(input, "\n")
+        if len(lines) &lt; 4 </span><span class="cov3" title="2">{ // 1 test case at least contains 4 lines (1 C, 1 N&amp;T, 1 E, and 1 H&amp;P)
+                return nil, errors.New("no data found or invalid input")
+        }</span>
+        <span class="cov5" title="3">noOfTestCases, err := strconv.Atoi(lines[0])
+        if err != nil </span><span class="cov0" title="0">{
+
+                return nil, fmt.Errorf("error when parsing number of test cases - %s", err.Error())
+        }</span>
+        <span class="cov5" title="3">index := 1 // index 0 is no of test cases
+        for i := 0; i &lt; noOfTestCases; i++ </span><span class="cov5" title="3">{
+                p := &amp;Parameter{
+                        Employees: make([]Employee, 0),
+                }
+                nAndT := strings.Split(strings.TrimSpace(lines[index]), " ")
+
+                if len(nAndT) != 2 </span><span class="cov0" title="0">{
+                        return nil, errors.New("format error when parsing N and T")
+                }</span>
+                <span class="cov5" title="3">p.NoOfTowns, err = strconv.Atoi(nAndT[0])
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("error when parsing N - %s", err.Error())
+                }</span>
+                <span class="cov5" title="3">p.OfficeTown, err = strconv.Atoi(nAndT[1])
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("error when parsing T - %s", err.Error())
+                }</span>
+
+                <span class="cov5" title="3">p.NoOfEmployees, err = strconv.Atoi(strings.TrimSpace(lines[index+1]))
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("error when parsing E - %s", err.Error())
+                }</span>
+
+                <span class="cov5" title="3">for j := 0; j &lt; p.NoOfEmployees; j++ </span><span class="cov8" title="6">{
+                        employee := Employee{}
+                        employeeData := strings.Split(strings.TrimSpace(lines[index+1+j+1]), " ")
+                        if len(employeeData) != 2 </span><span class="cov1" title="1">{
+                                return nil, fmt.Errorf("format error when parsing employee data")
+                        }</span>
+                        <span class="cov7" title="5">employee.Hometown, err = strconv.Atoi(employeeData[0])
+                        if err != nil </span><span class="cov0" title="0">{
+                                return nil, fmt.Errorf("error when parsing employee hometown- %s", err.Error())
+                        }</span>
+                        <span class="cov7" title="5">employee.NoOfPassengers, err = strconv.Atoi(employeeData[1])
+                        if err != nil </span><span class="cov1" title="1">{
+                                return nil, fmt.Errorf("error when parsing no of passengers- %s", err.Error())
+                        }</span>
+                        <span class="cov6" title="4">p.Employees = append(p.Employees, employee)</span>
+                }
+                <span class="cov1" title="1">index = index + 1 + p.NoOfEmployees + 1
+                params = append(params, p)</span>
+        }
+        <span class="cov1" title="1">return params, nil</span>
+}
+
+func checkRequirements(employeeInTown, totalPassagersAllow int, noOfPassagersArr []int) int <span class="cov8" title="7">{
+        carsNeeded := 0
+        // if employee in the town more than total number of passesengers allowed in the town
+        if employeeInTown &gt; totalPassagersAllow </span><span class="cov1" title="1">{
+                return -1 // -1 means impossible
+        }</span>
+        <span class="cov8" title="6">for _, v := range noOfPassagersArr </span><span class="cov5" title="3">{
+                employeeInTown = employeeInTown - v
+                carsNeeded++
+                if employeeInTown &lt;= 0 </span><span class="cov5" title="3">{
+                        break</span>
+                }
+        }
+        <span class="cov8" title="6">return carsNeeded</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
